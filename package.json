@@ -1,0 +1,22 @@
+{
+  "name": "crossword",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imoans/crossword.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imoans/crossword/issues"
+  },
+  "homepage": "https://github.com/imoans/crossword#readme",
+  "devDependencies": {
+    "flow-bin": "^0.62.0"
+  }
+}
