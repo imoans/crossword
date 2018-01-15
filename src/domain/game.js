@@ -1,7 +1,8 @@
 // @flow
 
-import Progress, { PlainProgress } from './progress.js'
-import Field, { PlainField } from './field.js'
+import type { Player } from './player.js'
+import Progress, { PlainProgress } from './progress'
+import Field, { PlainField } from './field'
 
 type PlainGame = {
     players: Array<string>,
@@ -13,6 +14,7 @@ export default class Game {
   constructor({
     players,
     progress,
+    field
   }: PlainGame) {
     this.players = players
     this.progress = new Progress(progress)
