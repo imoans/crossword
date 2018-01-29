@@ -3,7 +3,7 @@
 import type { Card } from './card.js'
 
 export type PlainPlayer = {
-  hands: ?Array<PlainCard>,
+  hands?: Array<PlainCard>,
   name: string
 }
 
@@ -18,9 +18,9 @@ export default class Player {
   hands: Array<Card>
   name: string
 
-  addHand(card: Card): Player {
+  addHand(cards: Array<Card>): Player {
     return new Player({
-      hands: this.hands.push(card),
+      hands: [...this.hands, ...cards],
       name: this.name,
     })
   }

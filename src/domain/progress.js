@@ -9,7 +9,7 @@ export default class Progress {
   constructor({
     turn,
     isInProgress
-  }) {
+  }: PlainProgress = {}) {
     this.turn = turn || 1
     this.inInProgress = isInProgress || false
   }

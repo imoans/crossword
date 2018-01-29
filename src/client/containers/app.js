@@ -2,16 +2,26 @@
 
 import React, { Component } from 'react'
 import { connect, Provider } from 'react-redux'
-import ReactDOM from 'react-dom'
-import store from '../store'
-import App from '../components'
+import { render } from 'react-native'
+import store from '../redux/store'
+import { Router, Route, BrowserRouter } from 'react-router-dom'
+import PATH from '../constants/path'
+import { View } from 'react-native'
+
+import App from '../components/app'
+import Game from '../containers/game'
 
 const mapStateToProps = state => state
 const mapDispatchToProps = dispatch => { actions: actions(dispatch) }
 
-ReactDOM.render(
+render(
   <Provider store={store}>
-    <App />
+    <BrowserRouter>
+      <View>
+        <Route path={PATH.TOP} component={App} />
+        <Route path={PATH.GAME} component={Game} />
+      </View>
+    </BrowserRouter>
   </Provider>,
   document.getElementById('app')
 )
