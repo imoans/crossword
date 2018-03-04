@@ -4,9 +4,10 @@ import React, { Component } from 'react'
 import { connect, Provider } from 'react-redux'
 import { render } from 'react-native'
 import store from '../redux/store'
-import { Router, Route, BrowserRouter } from 'react-router-dom'
 import PATH from '../constants/path'
 import { View } from 'react-native'
+
+import { Router, Route, BrowserRouter } from 'react-router-dom'
 
 import App from '../components/app'
 import Game from '../containers/game'

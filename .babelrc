@@ -1,4 +1,4 @@
 {
-  "presets": ["react-app"],
-  "plugins": ["react-native-web"]
+  "presets": ["env", "flow", "react-app"],
+  "plugins": ["react-native-web", "transform-class-properties"]
 }

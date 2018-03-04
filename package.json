@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel public/index.html",
-    "server": "node src/server/index.js",
+    "server": "NODE_ENV=development babel src --out-dir dist && node dist/server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +22,7 @@
     "babel-cli": "^6.26.0",
     "babel-plugin-react-native-web": "^0.3.3",
     "babel-preset-env": "^1.6.1",
+    "babel-preset-flow": "^6.23.0",
     "babel-preset-react": "^6.24.1",
     "babel-preset-react-app": "^3.1.1",
     "flow-bin": "^0.62.0",
@@ -34,9 +35,9 @@
     "redux-logger": "^3.0.6"
   },
   "dependencies": {
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "react-native": "^0.52.2",
     "react-native-web": "^0.3.2",
-    "react-navigation": "^1.0.0-beta.27",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
     "socket.io": "^2.0.4",

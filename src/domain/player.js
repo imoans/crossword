@@ -11,9 +11,9 @@ export default class Player {
   constructor({
     hands,
     name
-  }: PlainPlayer) {
+  }: PlainPlayer = {}) {
     this.hands = hands || []
-    this.name = name
+    this.name = name || 'dummy'
   }
   hands: Array<Card>
   name: string
@@ -22,6 +22,13 @@ export default class Player {
     return new Player({
       hands: [...this.hands, ...cards],
       name: this.name,
+    })
+  }
+
+  putHand(card: Card): Player {
+    return new Player({
+      ...this,
+      hands: this.hands.filter(hand => hand.id !== card.id),
     })
   }
 }

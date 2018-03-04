@@ -4,6 +4,7 @@ import type { State as DomainState } from '../../domain/redux/state'
 import React from 'react'
 import socket from '../socket'
 import Game from '../../domain/game'
+import GameForClient from '../../domain/game-for-client'
 import GameService from '../../domain/game-service'
 import Player from '../../domain/player'
 import actionCreators from '../../domain/redux/actions'
@@ -53,12 +54,9 @@ export default class Start extends React.Component {
   }
 
   startGame() {
+    console.log('start game')
     const players = this.state.playerNames.map(name => new Player({ name }))
-    const game = new Game({ players })
-    const gameService = new GameService(game)
-    const newGame = gameService.startGame()
-    this.props.dispatch(actionCreators.updateGame(newGame))
-    this.props.history.push(PATH.GAME)
+    socket.emit('startGame', players)
   }
 
   updateUserName(e) {
@@ -77,18 +75,16 @@ export default class Start extends React.Component {
         <TextInput
           onBlur={(e) => this.updateUserName(e)}
         />
-        <Text
-          onClick={(e) => this.addUser(e)}
-        >
+        <Text onClick={(e) => this.addUser(e)}>
           join
         </Text>
 
         <Text>members waiting for the game</Text>
         <Text>{this.state.playerNames.join(', ')}</Text>
 
-        <Text onClick={() => this.startGame()}>
+        <Link to={PATH.GAME} onClick={() => this.startGame()}>
           start game!!!
-        </Text>
+        </Link>
       </View>
     )
   }

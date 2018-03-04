@@ -1,16 +1,16 @@
 // @flow
 
-import type { Game } from '../game'
+import GameForClient from '../game-for-client'
 
 export type PlainState = {
-  game: ?Game
+  game: ?GameForClient
 }
 
 export default class State {
   game: ?Game
 
   constructor(plain: PlainState = {}) {
-    this.game = plain.game || {}
+    this.game = plain.game || new GameForClient()
   }
 
   set(params: PlainState): State {

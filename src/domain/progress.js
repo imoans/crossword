@@ -16,9 +16,17 @@ export default class Progress {
   turn: number
   isInProgress: boolean
 
+  goToNextTurn(): Progress {
+    return new Progress({
+      ...this,
+      turn: this.turn + 1
+    })
+
+  }
+
   start(): Progress {
     return new Progress({
-      turn: this.turn,
+      ...this,
       isInProgress: true,
     })
   }
