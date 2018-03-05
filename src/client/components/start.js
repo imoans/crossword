@@ -8,12 +8,16 @@ import GameForClient from '../../domain/game-for-client'
 import GameService from '../../domain/game-service'
 import Player from '../../domain/player'
 import actionCreators from '../../domain/redux/actions'
+import { NUMBER_OF_CARDS } from './field'
+import { getCenterPoint } from '../../util/get-center-point'
 import {
   View,
   Text,
   TextInput,
-  StyleSheet
+  StyleSheet,
+  TouchableOpacity,
 } from 'react-native'
+import { Redirect } from 'react-router'
 import { Link } from 'react-router-dom'
 import PATH from '../constants/path'
 import COLORS from '../constants/colors'
@@ -26,12 +30,17 @@ type Props = {
 type State = {
   userName: string,
   playerNames: Array<string>,
+  joined: boolean,
+  isInProgress: boolean,
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.BASE,
+  },
+  disable: {
+    opacity: 0.8,
   },
 })
 
@@ -40,23 +49,38 @@ export default class Start extends React.Component {
     super(props)
     this.state = {
       userName: '',
-      playerNames: []
+      playerNames: [],
+      joined: false,
     }
 
-    socket.on('addUser', (userName) => {
-      const playerNames = [ ...this.state.playerNames, userName ]
+    socket.on('addPlayer', (playerNames) => {
       this.setState({ playerNames })
+    })
+
+    socket.on('joined', (playerNames) => {
+      this.setState({ joined: true })
+    })
+
+    socket.on('inProgress', () => {
+      this.setState({ isInProgress: true })
+    })
+
+    socket.on('disconnect', (playerName, playerNames) => {
+      this.setState({ playerNames })
+      console.log(`${playerName} disconnect`)
     })
   }
 
   addUser() {
-    socket.emit('addUser', this.state.userName)
+    if (this.state.joined) return
+    socket.emit('addPlayer', this.state.userName)
   }
 
-  startGame() {
-    console.log('start game')
-    const players = this.state.playerNames.map(name => new Player({ name }))
-    socket.emit('startGame', players)
+  startGame = () => {
+    if (!this.isReady() || this.state.isInProgress) return
+    const { HORIZONTAL, VERTICAL } = NUMBER_OF_CARDS
+    const center = getCenterPoint(HORIZONTAL, VERTICAL)
+    socket.emit('startGame', center)
   }
 
   updateUserName(e) {
@@ -65,7 +89,13 @@ export default class Start extends React.Component {
     })
   }
 
+  isReady() {
+    return this.state.playerNames.length >= 2
+  }
+
   render() {
+    if (this.state.isInProgress) return <Redirect to={PATH.GAME} />
+
     return (
       <View style={styles.container}>
         <Text>crossword</Text>
@@ -75,16 +105,20 @@ export default class Start extends React.Component {
         <TextInput
           onBlur={(e) => this.updateUserName(e)}
         />
-        <Text onClick={(e) => this.addUser(e)}>
+        <Text
+          onClick={(e) => this.addUser(e)}
+          style={this.state.joined ? styles.disable : null}
+        >
           join
         </Text>
-
         <Text>members waiting for the game</Text>
         <Text>{this.state.playerNames.join(', ')}</Text>
 
-        <Link to={PATH.GAME} onClick={() => this.startGame()}>
-          start game!!!
-        </Link>
+        <TouchableOpacity onPress={this.startGame}>
+          <Text style={this.isReady() ? null : styles.disable}>
+            start game!!!
+          </Text>
+        </TouchableOpacity>
       </View>
     )
   }

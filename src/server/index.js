@@ -7,26 +7,30 @@ import OtherPlayer from '../domain/other-player'
 const server = require('http').createServer()
 const io = require('socket.io').listen(server)
 
-const userByClientId = {}
+const playerByClientId = {}
 
 io.on('connection', (client) => {
-  client.on('addUser', (userName) => {
-    userByClientId[client.id] = userName
-    io.emit('addUser', userName)
+  client.on('addPlayer', (playerName) => {
+    playerByClientId[client.id] = playerName
+    const players = Object.keys(playerByClientId).map(id => playerByClientId[id])
+    io.to(client.id).emit('joined')
+    io.emit('addPlayer', players)
   })
 
-  client.on('startGame', (plainPlayers) => {
-    const players = plainPlayers.map(player => new Player(player))
+  client.on('startGame', (center) => {
+    const players = Object.keys(playerByClientId).map(id => new Player({ name: playerByClientId[id] }))
     const game = new Game({ players })
     const gameService = new GameService(game)
     const newGame = gameService.startGame()
+    io.emit('inProgress')
 
     const service = new GameService(newGame)
     const gameForServer = service.dealHands()
+    const gameSetFirstCard = new GameService(gameForServer).putFirstCard(center)
 
-    Object.keys(userByClientId).forEach(id => {
-      const yourName = userByClientId[id]
-      const otherPlayers = gameForServer.players
+    Object.keys(playerByClientId).forEach(id => {
+      const yourName = playerByClientId[id]
+      const otherPlayers = gameSetFirstCard.players
       .filter(player => player.name !== yourName)
       .map(player => {
         const numberOfHands = player.hands.length
@@ -35,18 +39,30 @@ io.on('connection', (client) => {
       })
 
       const gameForClient = new GameForClient({
-        playerIdsByOrder: gameForServer.playerIdsByOrder,
-        field: gameForServer.field,
-        progress: gameForServer.progress,
-        you: gameForServer.getPlayer(yourName),
+        playerIdsByOrder: gameSetFirstCard.playerIdsByOrder,
+        field: gameSetFirstCard.field,
+        progress: gameSetFirstCard.progress,
+        you: gameSetFirstCard.getPlayer(yourName),
         otherPlayers,
       })
 
       io.to(id).emit('dealHands', gameForClient)
     })
   })
+
+  client.on('putCard', (gameForClient) => {
+    io.emit('putCard', gameForClient)
+  })
+
+  client.on('drawCard', (gameForClient) => {
+
+  })
+
   client.on('disconnect', () => {
-    console.log('disconnect')
+    const playerName = playerByClientId[client.id]
+    delete playerByClientId[client.id]
+    const playerNames = Object.keys(playerByClientId).map(id => playerByClientId[id])
+    io.emit('disconnect', playerName, playerNames)
   })
 })
 

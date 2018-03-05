@@ -38,11 +38,6 @@ const styles = StyleSheet.create({
 })
 
 export default class Game extends Component {
-  static getCenterPoint(horizontal: number, vertical: number): Point {
-    const getCenter = (number) => (number - 1) / 2 + 1
-    return { x: getCenter(horizontal), y: getCenter(vertical) }
-  }
-
   static getWord(wordByPoint: WordByPoint): string {
     const points = Object.keys(wordByPoint).map(word => wordByPoint[word])
     points.sort((a,b) => a.x - b.x)
@@ -61,11 +56,7 @@ export default class Game extends Component {
 
     socket.on('dealHands', (plainGame) => {
       const game = new GameForClient(plainGame)
-      const service = new GameServiceForClient(game)
-      const { HORIZONTAL, VERTICAL } = NUMBER_OF_CARDS
-      const center = Game.getCenterPoint(HORIZONTAL, VERTICAL)
-      const newGame = service.putFirstCard(center)
-      this.props.dispatch(actionCreators.updateGame(newGame))
+      this.props.dispatch(actionCreators.updateGame(game))
     })
 
   }
@@ -117,6 +108,7 @@ export default class Game extends Component {
   onDrawCard = () => {
     const service = new GameServiceForClient(this.props.domain.game)
     const newGame = service.drawCard()
+    socket.emit('drawCard', newGame)
     this.props.dispatch(actionCreators.updateGame(newGame))
   }
 
