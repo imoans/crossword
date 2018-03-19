@@ -26,6 +26,7 @@ export default class GameService {
       field: this.game.field,
       progress: this.game.progress,
       playerIdsByOrder: this.game.playerIdsByOrder,
+      deckLength: this.game.deck.length,
     })
   }
 
@@ -58,13 +59,6 @@ export default class GameService {
     return new Game({ ...this.game, progress })
   }
 
-  dealHands(): Game {
-    const playerIds = this.game.getPlayerIds()
-    const handByPlayerId = this.game.field.dealHands(playerIds)
-
-    return this.game.dealHands(handByPlayerId)
-  }
-
   putCard(card: Card, point: Point, word: string): Game {
     const field = this.game.field.putCard(card, point, word)
     return new Game({ ...this.game, field })
@@ -74,7 +68,7 @@ export default class GameService {
     const field = this.game.field.confirmPutCard(card, point, isWordValid)
     if (field == null) return this.goToNextTurn()
 
-    const player = this.game.getPlayer(playerId).addHand(card)
+    const player = this.game.getPlayer(playerId).addHands(card)
     return new Game({
       ...this.game.updatePlayer(player),
       field
@@ -82,25 +76,11 @@ export default class GameService {
   }
 
   putFirstCard(point: Point): Game {
-    const card = this.game.field.pickCardToDraw()
-    const field = this.game.field.putFirstCard(card, point)
-    return new Game({ ...this.game, field })
+    return this.game.putFirstCard(point)
   }
 
   drawCard(playerId: string): Game {
-    const card = this.game.field.pickCardToDraw()
-
-    let newPlayer
-    const players = this.game.players.map(player => {
-      if (player.id === playerId) {
-        newPlayer = player.addHand(card)
-      }
-    })
-    if (newPlayer == null) {
-      throw new Error('Player with specified id does not exist')
-    }
-
-    return new Game({ ...this.game, players })
+    return this.game.drawCard(playerId)
   }
 
   startGame(): Game {

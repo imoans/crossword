@@ -14,6 +14,7 @@ type PlainGameForClient = {
   otherPlayers?: Array<OtherPlayer> | Array<PlainOtherPlayer>,
   progress?: Progress | PlainProgress,
   field?: Field | PlainField,
+  deckLength?: number,
 }
 
 export default class Game {
@@ -22,19 +23,22 @@ export default class Game {
     you,
     otherPlayers,
     progress,
-    field
+    field,
+    deckLength,
   }: PlainGame = {}) {
     this.you = this.initializeYou(you)
     this.otherPlayers = this.initializeOtherPlayers(otherPlayers)
     this.progress = this.initializeProgress(progress)
     this.field = this.initializeField(field)
     this.playerIdsByOrder = playerIdsByOrder || {}
+    this.deckLength = deckLength || 0
   }
   playerIdsByOrder: PlayerIdsByOrder
   you: ?Player
   otherPlayers: Array<OtherPlayer>
   progress: Progress
   field: Field
+  deckLength: number
 
   initializeYou(you: null | Player | PlainPlayer): ?Player {
     if (you == null) {
@@ -123,16 +127,12 @@ export default class Game {
     return new Game({ ...this, you, field })
   }
 
-  dealHands(yourHands: Array<Card>): Game {
-    const you = this.you.addHand(yourHands)
-    const otherPlayers = this.otherPlayers.map(
-      player => player.addHand(yourHands.length)
-    )
-    return new Game({ ...this, you, otherPlayers })
-  }
-
   isJoined(): boolean {
     return this.you != null
+  }
+
+  isDrawableCard(): boolean {
+    return this.deckLength > 0
   }
 
   getYourHands(): Array<Card> {

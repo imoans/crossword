@@ -50,12 +50,24 @@ const actions = {
       const game = getState().domain.game
       const gameIsStarted = new GameService(game).startGame()
       const gameSetOrder = new GameService(gameIsStarted).setOrder()
-
-      const gameDealtHands = new GameService(gameSetOrder).dealHands()
+      const gameSetDeck = gameSetOrder.setDeck()
+      const gameDealtHands = gameSetDeck.dealHands()
       const gameSetFirstCard = new GameService(gameDealtHands).putFirstCard(pointToPutFirstCard)
 
       dispatch(domainActions.updateGame(gameSetFirstCard))
       emitGameToClient(getState().server.playerByClientId, gameSetFirstCard)
+    }
+  },
+
+  drawCard(clientId: string): void {
+    return (dispatch, getState) => {
+      const game = getState().domain.game
+      const service = new GameService(game)
+      const playerByClientId = getState().server.playerByClientId
+      const newGame = service.drawCard(playerByClientId[clientId])
+
+      dispatch(domainActions.updateGame(newGame))
+      emitGameToClient(playerByClientId, newGame)
     }
   },
 

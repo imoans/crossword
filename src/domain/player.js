@@ -21,7 +21,7 @@ export default class Player {
   name: string
   id: ?string
 
-  addHand(cards: Array<Card>): Player {
+  addHands(cards: Array<Card>): Player {
     return new Player({
       ...this,
       hands: this.hands.concat(cards),

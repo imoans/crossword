@@ -3,8 +3,6 @@
 import fetch from 'isomorphic-fetch'
 import Card from './card'
 
-const NUMBER_OF_INITIAL_HANDS = 5
-
 type Point = {
   x: number,
   y: number,
@@ -37,17 +35,8 @@ export default class Field {
     return this.cardsMap[id]
   }
 
-  dealHands(playerIds: Array<string>): { [playerId: string]: Array<Card>} {
-    const handByPlayerId = {}
-    playerIds.forEach(id => {
-      const hand = []
-      for (let i = 1; i <= NUMBER_OF_INITIAL_HANDS; i++) {
-        hand.push(this.pickCardToDraw())
-      }
-      handByPlayerId[id] = hand
-    })
-
-    return handByPlayerId
+  getAllCardsOnField(): Array<Card> {
+    return Object.keys(this.cardsMap).map(id => this.cardsMap[id])
   }
 
   confirmPutCard(card: Card, point: Point, isWordValid: boolean): ?Field {
@@ -82,11 +71,5 @@ export default class Field {
       cardsArrangement,
       cardsMap
     })
-  }
-
-  pickCardToDraw(): Card {
-    const seed = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'
-    const value = seed[Math.floor(Math.random() * seed.length)] // TODO
-    return new Card({ value })
   }
 }

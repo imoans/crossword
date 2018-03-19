@@ -35,18 +35,4 @@ export default class GameServiceForClient {
   putCard(card: Card, point: Point): GameForClient {
     return this.game.putCard(card, point)
   }
-
-  putFirstCard(point: Point): GameForClient {
-    const card = this.game.field.pickCardToDraw()
-    const field = this.game.field.putFirstCard(card, point)
-    return new GameForClient({ ...this.game, field })
-  }
-
-  // TODO other player
-  // TODO どこがhandの数知ってるのがいい?
-  drawCard(): GameForClient {
-    const card = this.game.field.pickCardToDraw()
-    const you = this.game.you.addHand([card])
-    return new GameForClient({ ...this.game, you })
-  }
 }

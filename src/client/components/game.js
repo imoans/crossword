@@ -118,10 +118,12 @@ export default class Game extends Component {
   }
 
   onDrawCard = () => {
-    const service = new GameServiceForClient(this.props.domain.game)
-    const newGame = service.drawCard()
-    this.props.dispatch(actionCreators.updateGame(newGame))
-    socket.emit('updateGame', newGame)
+    socket.emit('drawCard')
+  }
+
+  isDrawableCard(): boolean {
+    // TODO
+    return this.isYourTurn() && this.props.domain.game.isDrawableCard()
   }
 
   render() {
@@ -156,7 +158,7 @@ export default class Game extends Component {
           onComplete={this.onCompleteWord}
         />
         <DrawCardModal
-          visible={this.isYourTurn()} /* TODO */
+          visible={this.isDrawableCard()}
           onPress={this.onDrawCard}
         />
         {this.state.errorString.length > 0 &&
