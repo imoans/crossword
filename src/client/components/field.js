@@ -26,12 +26,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.BASE,
     width: CARD_SIZE.WIDTH,
     height: CARD_SIZE.HEIGHT,
+    backgroundColor: COLORS.ACCENT,
   }
 })
 
 type Props = {
-  point: Point,
-  cardToPut: Card,
   field: Field,
   onPressCard: (card: Card) => void,
   onPressTile: (point: Point) => void,
@@ -39,34 +38,33 @@ type Props = {
 
 const getHorizontalCardsFromLeft = (row: number, field: Field): Array<Card> => {
   const { HORIZONTAL } = NUMBER_OF_CARDS
-  const cardsAtRow = range(1, HORIZONTAL).map(x => (
+  return range(1, HORIZONTAL).map(x => (
     field.getCardByPoint({ x, y: row })
   ))
-
-  return cardsAtRow
 }
 
-const renderRow = (cards: Array<Card>, onPressTile, row, selectedPoint, cardToPut, onPressCard) => {
+const renderRow = (row: number, props: Props) => {
+  const { onPressCard, onPressTile, field } = props
+  const cards = getHorizontalCardsFromLeft(row, field)
+
   return (
     <View style={styles.row}>
     {range(1, NUMBER_OF_CARDS.HORIZONTAL).map(x => {
-      const selected = selectedPoint.x && selectedPoint.y && selectedPoint.x === x && selectedPoint.y === row
       const card = cards[x - 1]
-      const point = { x, y: row }
-      if (selected && cardToPut || card != null) {
-        const value = card ? card.value : cardToPut.value
+      if (card != null) {
         return (
           <CardView
             key={x}
-            value={value}
+            value={card.value}
             onPress={() => onPressCard(card)}
           />
         )
       }
+
+      const point = { x, y: row }
       return (
         <Tile
           key={x}
-          selected={selected}
           onPress={() => onPressTile(point)}
         />
       )
@@ -76,26 +74,19 @@ const renderRow = (cards: Array<Card>, onPressTile, row, selectedPoint, cardToPu
 }
 
 const Field = (props: Props) => {
-  const { field } = props
   return (
     <View style={styles.container}>
-      {range(1, NUMBER_OF_CARDS.VERTICAL).map(y => {
-        const cards = getHorizontalCardsFromLeft(y, field)
-        return renderRow(cards, props.onPressTile, y, props.point, props.cardToPut, props.onPressCard)
-      })}
+      {range(1, NUMBER_OF_CARDS.VERTICAL).map(y => renderRow(y, props))}
     </View>
   )
 }
 
-const Tile = (props: { onPress: () => void, selected: boolean }) => {
-  const { ACCENT, PRIMARY } = COLORS
-  const backgroundColor = props.selected ? PRIMARY : ACCENT
+const Tile = (props: { onPress: () => void }) => {
   return (
     <TouchableOpacity onPress={props.onPress}>
-      <View style={[styles.tile, { backgroundColor }]} />
+      <View style={styles.tile} />
     </TouchableOpacity>
   )
-
 }
 
 export default Field

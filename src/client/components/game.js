@@ -2,10 +2,12 @@
 
 import React, { Component } from 'react'
 import type { Point } from '../../domain/field'
+import { unique } from '../../util/array'
 import { View, Text, StyleSheet } from 'react-native'
 import COLORS from '../constants/colors'
 import GameServiceForClient from '../../domain/game-service-for-client'
 import GameForClient, { type PlainGameForClient } from '../../domain/game-for-client'
+import type { CardsArrangement } from '../../domain/field'
 import actionCreators from '../../domain/redux/client/actions'
 import SelectHandModal from './select-hand-modal'
 import SelectWordModal from './select-word-modal'
@@ -38,9 +40,9 @@ type Props = {
 }
 
 type State = {
+  cardsArrangementBeforeConfirm: CardsArrangement,
   cardIdsToMakeWord: Array<string>,
-  point: Point,
-  cardToPut: ?Card,
+  handToPut: ?Card,
   errorString: string,
 }
 
@@ -61,17 +63,16 @@ export default class Game extends Component {
   }
 
   state: State = {
-    point: {},
     cardIdsToMakeWord: [],
-    cardToPut: null,
+    handToPut: null,
     errorString: '',
   }
 
   getWord(): string {
     const { cardIdsToMakeWord } = this.state
     const field = this.props.domain.game.field
-    const { cardsArrangement, cardsMap } = field
-    const points = cardIdsToMakeWord.map(id => cardsArrangement[id])
+    const { temporaryCardsArrangament } = field
+    const points = cardIdsToMakeWord.map(id => temporaryCardsArrangament[id])
     points.sort((a,b) => a.x - b.x)
     points.sort((a,b) => a.y - b.y)
 
@@ -83,36 +84,28 @@ export default class Game extends Component {
   }
 
   onSelectedHand = (hand: Card) => {
-    this.setState({ cardToPut: hand })
-    const service = new GameServiceForClient(this.props.domain.game)
-    const game = service.putCard(hand, this.state.point)
-    socket.emit('updateGame', game)
+    this.setState({ handToPut: hand })
   }
 
   onPressTile = (point: Point) => {
-    if (!this.isYourTurn()) return
-    this.setState({
-      point,
-    })
+    if (!this.isYourTurn() || this.state.handToPut == null) return
+    // TODO check point
+    const service = new GameServiceForClient(this.props.domain.game)
+    const game = service.putCard(this.state.handToPut, point)
+    socket.emit('updateGame', game)
   }
 
   onPressCard = (card: Card) => {
     if (!this.isYourTurn()) return
-    this.setState({
-      cardIdsToMakeWord: this.state.cardIdsToMakeWord.concat(card.id)
-    })
+    const cardIdsToMakeWord = unique(this.state.cardIdsToMakeWord.concat(card.id))
+    this.setState({ cardIdsToMakeWord })
   }
 
   onCompleteWord = () => {
-    socket.emit('confirmPutCard', {
-      word: this.getWord(),
-      card: this.state.cardToPut,
-      point: this.state.point,
-    })
+    socket.emit('confirmPutCard', this.getWord())
 
     this.setState({
-      cardToPut: null,
-      point: {},
+      handToPut: null,
       cardIdsToMakeWord: [],
     })
   }
@@ -144,6 +137,7 @@ export default class Game extends Component {
 
         <SelectHandModal
           hands={hands}
+          handToPut={this.state.handToPut}
           visible={this.isYourTurn()}
           onSelectedHand={this.onSelectedHand}
         />
@@ -160,9 +154,7 @@ export default class Game extends Component {
           <Text>{this.state.errorString}</Text>
         }
         <Field
-          point={this.state.point}
           field={field}
-          cardToPut={this.state.cardToPut}
           onPressCard={this.onPressCard}
           onPressTile={this.onPressTile}
         />

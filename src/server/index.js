@@ -8,6 +8,7 @@ import store from './redux/store'
 import domainActions from '../domain/redux/server/actions'
 import actions from './redux/actions'
 
+const port = 8000
 const server = require('http').createServer()
 const io = require('socket.io').listen(server)
 
@@ -32,11 +33,8 @@ io.on('connection', (client) => {
     store.dispatch(actions.skipTurn(client.id))
   })
 
-  client.on('confirmPutCard', async (payload) => {
-    await store.dispatch(actions.confirmPutCard({
-      ...payload,
-      clientId: client.id,
-    }))
+  client.on('confirmPutCard', async (word) => {
+    await store.dispatch(actions.confirmPutCard(word, client.id))
   })
 
   client.on('disconnect', () => {
@@ -44,11 +42,9 @@ io.on('connection', (client) => {
   })
 })
 
-server.on('request', (req, res) => {
-  console.log('request')
-})
+server.on('request', (req, res) => {})
 
-server.listen(8000)
-console.log('listening on 8000')
+server.listen(port)
+console.log(`listening on ${port}`)
 
 export default io

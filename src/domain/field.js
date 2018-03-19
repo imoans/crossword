@@ -12,53 +12,76 @@ type CardsMap = { [cardId: string]: Card }
 
 export type PlainField = {
   cardsArrangement?: CardsArrangement,
-  cardsMap?: CardsMap
+  cardsMap?: CardsMap,
+  temporaryCardsArrangament?: CardsArrangement,
 }
 
 export default class Field {
   constructor({
     cardsArrangement,
-    cardsMap
+    cardsMap,
+    temporaryCardsArrangament,
   }: PlainField = {}) {
     this.cardsArrangement = cardsArrangement || {}
     this.cardsMap = cardsMap || {}
+    this.temporaryCardsArrangament = temporaryCardsArrangament || {}
   }
   cardsArrangement: CardsArrangement
   cardsMap: CardsMap
+  temporaryCardsArrangament: CardsArrangement
 
   getCardByPoint(point: Point): ?Card {
-    const id = Object.keys(this.cardsArrangement).find(id => {
-      const cardPoint = this.cardsArrangement[id]
+    const cardsArrangement = {
+      ...this.cardsArrangement,
+      ...this.temporaryCardsArrangament,
+    }
+
+    const id = Object.keys(cardsArrangement).find(id => {
+      const cardPoint = cardsArrangement[id]
       return cardPoint.x === point.x && cardPoint.y === point.y
     })
     if (id == null) return null
     return this.cardsMap[id]
   }
 
-  getAllCardsOnField(): Array<Card> {
-    return Object.keys(this.cardsMap).map(id => this.cardsMap[id])
-  }
-
-  confirmPutCard(card: Card, point: Point, isWordValid: boolean): ?Field {
-    if (isWordValid) return null
-
-    const cardsArrangement = { ...this.cardsArrangement }
-    const cardsMap = { ...this.cardsMap }
-    delete cardsArrangement[card.id]
-    delete cardsMap[card.id]
+  confirmPuttingCard(): Field {
+    const cardsArrangement = {
+      ...this.temporaryCardsArrangament,
+      ...this.cardsArrangement,
+    }
 
     return new Field({
+      ...this,
       cardsArrangement,
+      temporaryCardsArrangament: {},
+    })
+  }
+
+  cancelPuttingCard(): Field {
+    const temporaryCardsArrangament = { ...this.temporaryCardsArrangament }
+    const cardsMap = { ...this.cardsMap }
+
+    Object.keys(this.temporaryCardsArrangament).forEach(id => {
+      delete cardsMap[id]
+    })
+
+    return new Field({
+      ...this,
+      temporaryCardsArrangament: {},
       cardsMap
     })
   }
 
   putCard(card: Card, point: Point): Field {
-    const cardsArrangement = Object.assign({}, this.cardsArrangement, { [card.id]: point })
+    const temporaryCardsArrangament = {
+      ...this.temporaryCardsArrangament,
+      [card.id]: point,
+    }
     const cardsMap = Object.assign({}, this.cardsMap, { [card.id]: card })
 
     return new Field({
-      cardsArrangement,
+      ...this,
+      temporaryCardsArrangament,
       cardsMap
     })
   }
@@ -68,6 +91,7 @@ export default class Field {
     const cardsMap = Object.assign({}, this.cardsMap, { [card.id]: card })
 
     return new Field({
+      ...this,
       cardsArrangement,
       cardsMap
     })

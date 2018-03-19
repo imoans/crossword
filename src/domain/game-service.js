@@ -54,21 +54,26 @@ export default class GameService {
     })
   }
 
-  putCard(card: Card, point: Point, word: string): Game {
-    const field = this.game.field.putCard(card, point, word)
+  putCard(card: Card, point: Point): Game {
+    const field = this.game.field.putCard(card, point)
     return new Game({ ...this.game, field })
   }
 
-  confirmPutCard(card: Card, point: Point, isWordValid: boolean, playerId: string): Game {
-    const field = this.game.field.confirmPutCard(card, point, isWordValid)
-    if (field == null) {
-      return this.game.drawCard(playerId).goToNextTurn()
+  confirmPutCard(isWordValid: boolean, playerId: string): Game {
+    if (!isWordValid) {
+      const game = this.game.drawCard(playerId).goToNextTurn()
+      const field = game.field.cancelPuttingCard()
+      return new Game ({
+        ...game,
+        field,
+      })
     }
 
+    const field = this.game.field.confirmPutCard()
     const player = this.game.getPlayer(playerId).addHands(card)
     return new Game({
       ...this.game.updatePlayer(player),
-      field
+      field,
     })
   }
 

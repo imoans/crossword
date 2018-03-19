@@ -88,7 +88,7 @@ const actions = {
     }
   },
 
-  confirmPutCard({ word, clientId, card, point }): void {
+  confirmPutCard(word: string, clientId: string): void {
     return async (dispatch, getState) => {
       const service = new GameService(getState().domain.game)
       const playerByClientId = getState().server.playerByClientId
@@ -96,7 +96,7 @@ const actions = {
       try {
         const isWordValid = await isWordExisted(word)
         if (!isWordValid) { io.emit('failedToPutCard', word) }
-        const game = service.confirmPutCard(card, point, isWordValid, id)
+        const game = service.confirmPutCard(isWordValid, id)
         emitGameToClient(playerByClientId, game)
       } catch (e) { console.log(e) }
     }
