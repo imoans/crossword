@@ -54,11 +54,6 @@ export default class GameService {
     })
   }
 
-  goToNextTurn(): Game {
-    const progress = this.game.progress.goToNextTurn()
-    return new Game({ ...this.game, progress })
-  }
-
   putCard(card: Card, point: Point, word: string): Game {
     const field = this.game.field.putCard(card, point, word)
     return new Game({ ...this.game, field })
@@ -66,7 +61,9 @@ export default class GameService {
 
   confirmPutCard(card: Card, point: Point, isWordValid: boolean, playerId: string): Game {
     const field = this.game.field.confirmPutCard(card, point, isWordValid)
-    if (field == null) return this.goToNextTurn()
+    if (field == null) {
+      return this.game.drawCard(playerId).goToNextTurn()
+    }
 
     const player = this.game.getPlayer(playerId).addHands(card)
     return new Game({
@@ -77,10 +74,6 @@ export default class GameService {
 
   putFirstCard(point: Point): Game {
     return this.game.putFirstCard(point)
-  }
-
-  drawCard(playerId: string): Game {
-    return this.game.drawCard(playerId)
   }
 
   startGame(): Game {

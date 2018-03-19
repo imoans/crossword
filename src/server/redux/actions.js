@@ -59,13 +59,12 @@ const actions = {
     }
   },
 
-  drawCard(clientId: string): void {
+  skipTurn(clientId: string): void {
     return (dispatch, getState) => {
       const game = getState().domain.game
       const service = new GameService(game)
       const playerByClientId = getState().server.playerByClientId
-      const newGame = service.drawCard(playerByClientId[clientId])
-
+      const newGame = game.drawCard(playerByClientId[clientId]).goToNextTurn()
       dispatch(domainActions.updateGame(newGame))
       emitGameToClient(playerByClientId, newGame)
     }

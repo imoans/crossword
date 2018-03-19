@@ -75,6 +75,11 @@ export default class Game {
     return new Game({ ...this, deck })
   }
 
+  goToNextTurn(): Game {
+    const progress = this.progress.goToNextTurn()
+    return new Game({ ...this, progress })
+  }
+
   dealHands(): Game {
     if (!this.isDrawableCard()) return this
     const deck = this.deck.slice()
@@ -97,7 +102,7 @@ export default class Game {
 
     const deck = this.deck.slice()
 
-    const players = this.game.players.map(player => {
+    const players = this.players.map(player => {
       if (player.id === playerId) {
         return player.addHands(deck.splice(0, 1))
       } else return player

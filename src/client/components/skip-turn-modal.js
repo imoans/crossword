@@ -25,15 +25,15 @@ type Props = {
 }
 
 // TODO change to modal after modal support
-const DrawCardModal = (props: Props) => {
+const SkipTurnModal = (props: Props) => {
   if (!props.visible) return null
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={props.onPress}>
-        <Text>draw card</Text>
+        <Text>skip turn</Text>
       </TouchableOpacity>
     </View>
   )
 }
 
-export default DrawCardModal
+export default SkipTurnModal

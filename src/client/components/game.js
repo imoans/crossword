@@ -9,7 +9,7 @@ import GameForClient, { type PlainGameForClient } from '../../domain/game-for-cl
 import actionCreators from '../../domain/redux/client/actions'
 import SelectHandModal from './select-hand-modal'
 import SelectWordModal from './select-word-modal'
-import DrawCardModal from './draw-card-modal'
+import SkipTurnModal from './skip-turn-modal'
 import CardView from './card'
 import Field, { NUMBER_OF_CARDS } from './field'
 import socket from '../socket'
@@ -117,13 +117,8 @@ export default class Game extends Component {
     })
   }
 
-  onDrawCard = () => {
-    socket.emit('drawCard')
-  }
-
-  isDrawableCard(): boolean {
-    // TODO
-    return this.isYourTurn() && this.props.domain.game.isDrawableCard()
+  onSkipTurn = () => {
+    socket.emit('skipTurn')
   }
 
   render() {
@@ -157,9 +152,9 @@ export default class Game extends Component {
           word={this.getWord()}
           onComplete={this.onCompleteWord}
         />
-        <DrawCardModal
-          visible={this.isDrawableCard()}
-          onPress={this.onDrawCard}
+        <SkipTurnModal
+          visible={this.isYourTurn()}
+          onPress={this.onSkipTurn}
         />
         {this.state.errorString.length > 0 &&
           <Text>{this.state.errorString}</Text>

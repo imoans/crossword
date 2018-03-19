@@ -28,8 +28,8 @@ io.on('connection', (client) => {
     store.dispatch(actions.startGame(pointToPutFirstCard))
   })
 
-  client.on('drawCard', () => {
-    store.dispatch(actions.drawCard(client.id))
+  client.on('skipTurn', () => {
+    store.dispatch(actions.skipTurn(client.id))
   })
 
   client.on('confirmPutCard', async (payload) => {
