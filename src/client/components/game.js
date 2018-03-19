@@ -5,7 +5,7 @@ import type { Point } from '../../domain/field'
 import { View, Text, StyleSheet } from 'react-native'
 import COLORS from '../constants/colors'
 import GameServiceForClient from '../../domain/game-service-for-client'
-import GameForClient from '../../domain/game-for-client'
+import GameForClient, { type PlainGameForClient } from '../../domain/game-for-client'
 import actionCreators from '../../domain/redux/client/actions'
 import SelectHandModal from './select-hand-modal'
 import SelectWordModal from './select-word-modal'
@@ -19,15 +19,14 @@ type Props = {
   dispatch: any,
 }
 
-export type WordByPoint = {[value: string]: Point}
-
 type State = {
   selectHandsModalVisible: boolean,
   selectWordModalVisible: boolean,
   drawCardModalVisible: boolean,
-  wordByPoint: WordByPoint,
+  cardIdsToMakeWord: Array<string>,
   point: Point,
   cardToPut: ?Card,
+  errorString: string,
 }
 
 const styles = StyleSheet.create({
@@ -38,25 +37,18 @@ const styles = StyleSheet.create({
 })
 
 export default class Game extends Component {
-  static getWord(wordByPoint: WordByPoint): string {
-    const points = Object.keys(wordByPoint).map(word => wordByPoint[word])
-    points.sort((a,b) => a.x - b.x)
-    points.sort((a,b) => a.y - b.y)
-
-    return points.map(point => (
-      Object.keys(wordByPoint).find(word => {
-        const cardPoint = wordByPoint[word]
-        return cardPoint.x === point.x && cardPoint.y === point.y
-      })
-    )).join('')
-  }
-
   constructor(props) {
     super(props)
 
-    socket.on('updateGame', (plainGameForClient) => {
+    socket.on('updateGame', (plainGameForClient: PlainGameForClient) => {
       const game = new GameForClient(plainGameForClient)
       this.props.dispatch(actionCreators.updateGame(game))
+    })
+
+    socket.on('failedToPutCard', (word: string) => {
+      this.setState({
+        errorString: `${word} is invalid!`
+      })
     })
   }
 
@@ -65,8 +57,20 @@ export default class Game extends Component {
     selectWordModalVisible: false,
     drawCardModalVisible: false,
     point: {},
-    wordByPoint: {},
+    cardIdsToMakeWord: [],
     cardToPut: null,
+    errorString: '',
+  }
+
+  getWord(): string {
+    const { cardIdsToMakeWord } = this.state
+    const field = this.props.domain.game.field
+    const { cardsArrangement, cardsMap } = field
+    const points = cardIdsToMakeWord.map(id => cardsArrangement[id])
+    points.sort((a,b) => a.x - b.x)
+    points.sort((a,b) => a.y - b.y)
+
+    return points.map(point => field.getCardByPoint(point).value).join('')
   }
 
   isYourTurn() {
@@ -74,8 +78,8 @@ export default class Game extends Component {
   }
 
   onSelectedHand = (hand: Card) => {
+    console.log('onSelectHand', hand)
     this.setState({ cardToPut: hand })
-    if (Object.keys(this.state.wordByPoint) === 0) return
     const service = new GameServiceForClient(this.props.domain.game)
     const game = service.putCard(hand, this.state.point)
     socket.emit('updateGame', game)
@@ -89,18 +93,17 @@ export default class Game extends Component {
     })
   }
 
-  onPressCard = (card: Card, point: Point) => {
+  onPressCard = (card: Card) => {
+    console.log(card)
     if (!this.isYourTurn()) return
     this.setState({
-      wordByPoint: { ...this.state.wordByPoint, [card.value]: point }
+      cardIdsToMakeWord: this.state.cardIdsToMakeWord.concat(card.id)
     })
   }
 
   onCompleteWord = () => {
-    const word = Game.getWord(this.state.wordByPoint)
-
     socket.emit('confirmPutCard', {
-      word,
+      word: this.getWord(),
       card: this.state.cardToPut,
       point: this.state.point,
     })
@@ -108,7 +111,7 @@ export default class Game extends Component {
     this.setState({
       cardToPut: null,
       point: {},
-      wordByPoint: {},
+      cardIdsToMakeWord: [],
     })
   }
 
@@ -147,13 +150,16 @@ export default class Game extends Component {
         />
         <SelectWordModal
           visible={this.state.selectWordModalVisible}
-          word={Game.getWord(this.state.wordByPoint)}
+          word={this.getWord()}
           onComplete={this.onCompleteWord}
         />
         <DrawCardModal
           visible={this.state.drawCardModalVisible}
           onPress={this.onDrawCard}
         />
+        {this.state.errorString.length > 0 &&
+          <Text>{this.state.errorString}</Text>
+        }
         <Field
           point={this.state.point}
           field={field}
@@ -161,7 +167,6 @@ export default class Game extends Component {
           onPressCard={this.onPressCard}
           onPressTile={this.onPressTile}
         />
-
         {hands.length > 0 &&
           <View style={{ flexDirection: 'row' }}>
             <Text>your hands</Text>

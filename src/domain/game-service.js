@@ -70,11 +70,11 @@ export default class GameService {
     return new Game({ ...this.game, field })
   }
 
-  confirmPutCard(card: Card, point: Point, word: string, playerId: string): Game {
-    const field = this.game.field.confirmPutCard(card, point, word)
+  confirmPutCard(card: Card, point: Point, isWordValid: boolean, playerId: string): Game {
+    const field = this.game.field.confirmPutCard(card, point, isWordValid)
     if (field == null) return this.goToNextTurn()
 
-    const player = this.getPlayer(playerId).addHand(card)
+    const player = this.game.getPlayer(playerId).addHand(card)
     return new Game({
       ...this.game.updatePlayer(player),
       field

@@ -1,5 +1,6 @@
 // @flow
 
+import fetch from 'isomorphic-fetch'
 import Card from './card'
 
 const NUMBER_OF_INITIAL_HANDS = 5
@@ -27,11 +28,6 @@ export default class Field {
   cardsArrangement: CardsArrangement
   cardsMap: CardsMap
 
-  validateWord(word: string): boolean {
-    // TODO
-    return true
-  }
-
   getCardByPoint(point: Point): ?Card {
     const id = Object.keys(this.cardsArrangement).find(id => {
       const cardPoint = this.cardsArrangement[id]
@@ -54,8 +50,8 @@ export default class Field {
     return handByPlayerId
   }
 
-  confirmPutCard(card: Card, point: Point, word: string): ?Field {
-    if (this.validateWord(word)) return null
+  confirmPutCard(card: Card, point: Point, isWordValid: boolean): ?Field {
+    if (isWordValid) return null
 
     const cardsArrangement = { ...this.cardsArrangement }
     const cardsMap = { ...this.cardsMap }

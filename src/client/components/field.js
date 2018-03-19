@@ -32,7 +32,7 @@ type Props = {
   point: Point,
   cardToPut: Card,
   field: Field,
-  onPressCard: () => void,
+  onPressCard: (card) => void,
   onPressTile: (point: Point) => void,
 }
 
@@ -58,7 +58,7 @@ const renderRow = (cards: Array<Card>, onPressTile, row, selectedPoint, cardToPu
           <Card
             key={x}
             value={value}
-            onPress={() => onPressCard(card, point)}
+            onPress={() => onPressCard(card)}
           />
         )
       }

@@ -9,6 +9,7 @@ import GameForClient from '../../domain/game-for-client'
 import Game from '../../domain/game'
 import domainActions from '../../domain/redux/server/actions'
 import GameService from '../../domain/game-service'
+import isWordExisted from '../util/is-word-existed'
 
 const ActionTypes = {
   setState: 'setState',
@@ -72,18 +73,21 @@ const actions = {
       const gameNotInProgress = new GameService(game).pauseGame()
       dispatch(domainActions.updateGame(gameNotInProgress))
       emitGameToClient(playerByClientId, gameNotInProgress)
-      io.emit('disconnect', deletedPlayer.name)
+      // io.emit('disconnect', deletedPlayer.name)
     }
   },
 
   confirmPutCard({ word, clientId, card, point }): void {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
       const service = new GameService(getState().domain.game)
       const playerByClientId = getState().server.playerByClientId
       const id = playerByClientId[clientId]
-      const game = service.confirmPutCard(card, point, word, id)
-
-      emitGameToClient(playerByClientId, game)
+      try {
+        const isWordValid = await isWordExisted(word)
+        if (!isWordValid) { io.emit('failedToPutCard', word) }
+        const game = service.confirmPutCard(card, point, isWordValid, id)
+        emitGameToClient(playerByClientId, game)
+      } catch (e) { console.log(e) }
     }
   },
 
