@@ -1,0 +1,23 @@
+// @flow
+
+import type { Action } from './actions'
+import State from './state'
+
+const initialState = new State()
+
+export default function domainReducer(
+  state: State = initialState,
+  action: Action
+): State {
+
+  const { type, payload } = action
+
+  switch (type) {
+    case 'updateGame': {
+      const { game } = payload
+      return state.set({ game })
+    }
+    default:
+      return state
+  }
+}

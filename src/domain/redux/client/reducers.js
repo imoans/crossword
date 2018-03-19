@@ -2,7 +2,6 @@
 
 import type { Action } from './actions'
 import State from './state'
-import GameService from '../game-service'
 
 const initialState = new State()
 

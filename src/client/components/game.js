@@ -6,7 +6,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import COLORS from '../constants/colors'
 import GameServiceForClient from '../../domain/game-service-for-client'
 import GameForClient from '../../domain/game-for-client'
-import actionCreators from '../../domain/redux/actions'
+import actionCreators from '../../domain/redux/client/actions'
 import SelectHandModal from './select-hand-modal'
 import SelectWordModal from './select-word-modal'
 import DrawCardModal from './draw-card-modal'
@@ -54,11 +54,10 @@ export default class Game extends Component {
   constructor(props) {
     super(props)
 
-    socket.on('dealHands', (plainGame) => {
-      const game = new GameForClient(plainGame)
+    socket.on('updateGame', (plainGameForClient) => {
+      const game = new GameForClient(plainGameForClient)
       this.props.dispatch(actionCreators.updateGame(game))
     })
-
   }
 
   state: State = {
@@ -70,17 +69,20 @@ export default class Game extends Component {
     cardToPut: null,
   }
 
+  isYourTurn() {
+    return this.props.domain.game.isYourTurn()
+  }
+
   onSelectedHand = (hand: Card) => {
     this.setState({ cardToPut: hand })
     if (Object.keys(this.state.wordByPoint) === 0) return
-    const game = this.props.domain.game
-    const service = new GameServiceForClient(game)
-
-    const newGame = service.putCard(hand, this.state.point, this.state.word)
-    this.props.dispatch(actionCreators.updateGame(newGame))
+    const service = new GameServiceForClient(this.props.domain.game)
+    const game = service.putCard(hand, this.state.point)
+    socket.emit('updateGame', game)
   }
 
   onPressTile = (point: Point) => {
+    if (!this.isYourTurn()) return
     this.setState({
       point,
       selectHandsModalVisible: true,
@@ -88,6 +90,7 @@ export default class Game extends Component {
   }
 
   onPressCard = (card: Card, point: Point) => {
+    if (!this.isYourTurn()) return
     this.setState({
       wordByPoint: { ...this.state.wordByPoint, [card.value]: point }
     })
@@ -95,9 +98,13 @@ export default class Game extends Component {
 
   onCompleteWord = () => {
     const word = Game.getWord(this.state.wordByPoint)
-    const service = new GameServiceForClient(this.props.domain.game)
-    const newGame = service.putCard(this.state.cardToPut, this.state.point, word)
-    this.props.dispatch(actionCreators.updateGame(newGame))
+
+    socket.emit('confirmPutCard', {
+      word,
+      card: this.state.cardToPut,
+      point: this.state.point,
+    })
+
     this.setState({
       cardToPut: null,
       point: {},
@@ -108,21 +115,30 @@ export default class Game extends Component {
   onDrawCard = () => {
     const service = new GameServiceForClient(this.props.domain.game)
     const newGame = service.drawCard()
-    socket.emit('drawCard', newGame)
     this.props.dispatch(actionCreators.updateGame(newGame))
+    socket.emit('updateGame', newGame)
   }
 
   render() {
     const game = this.props.domain.game
     const hands = game.getYourHands ? game.getYourHands() : []
-    const turnPlayerName = game.getPlayerNameOnTurn ? game.getPlayerNameOnTurn() : ''
+    const playerNameOnTurnText =
+      game.isYourTurn() ? 'your' : `${game.getPlayerOnTurn().name}'s`
     const field = game.field ? game.field : {}
 
     return (
       <View style={styles.container}>
         <Text>{game ? game.getPlayersName().join(', ') : ''}</Text>
         <Text>game!!!</Text>
-        <Text>{`it's ${turnPlayerName}'s turn!!!!!!`}</Text>
+        <Text>{`it's ${playerNameOnTurnText} turn!!!!!!`}</Text>
+        <Text>{"number of player's hands"}</Text>
+        <Text>{
+          game.getPlayerIds().map(id => {
+            const player = game.getPlayerById(id)
+            if (player == null) return ''
+            return `${player.name}: ${game.getNumberOfHandsByPlayerId(id)}`
+          }).join('\n')
+        }</Text>
 
         <SelectHandModal
           hands={hands}
@@ -146,12 +162,14 @@ export default class Game extends Component {
           onPressTile={this.onPressTile}
         />
 
-        <Text>your hands</Text>
-        <View style={{ flexDirection: 'row' }}>
-          {hands.map(
-            (hand, i) => <Card key={i} value={hand.value} />
-          )}
-        </View>
+        {hands.length > 0 &&
+          <View style={{ flexDirection: 'row' }}>
+            <Text>your hands</Text>
+            {hands.map(
+              (hand, i) => <Card key={i} value={hand.value} />
+            )}
+          </View>
+        }
 
       </View>
     )

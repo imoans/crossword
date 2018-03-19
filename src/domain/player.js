@@ -1,27 +1,30 @@
 // @flow
 
 import type { Card } from './card.js'
-
 export type PlainPlayer = {
   hands?: Array<PlainCard>,
-  name: string
+  name: string,
+  id?: string,
 }
 
 export default class Player {
   constructor({
     hands,
-    name
+    name,
+    id,
   }: PlainPlayer = {}) {
     this.hands = hands || []
     this.name = name || 'dummy'
+    this.id = id
   }
   hands: Array<Card>
   name: string
+  id: ?string
 
   addHand(cards: Array<Card>): Player {
     return new Player({
-      hands: [...this.hands, ...cards],
-      name: this.name,
+      ...this,
+      hands: this.hands.concat(cards),
     })
   }
 

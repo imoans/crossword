@@ -1,6 +1,6 @@
 // @flow
 
-import GameForClient from '../game-for-client'
+import GameForClient from '../../game-for-client'
 
 export type PlainState = {
   game: ?GameForClient
@@ -14,11 +14,11 @@ export default class State {
   }
 
   set(params: PlainState): State {
-    if (params == null) {
-      return this
-    }
+    if (params == null) return this
 
-    const props = { ...this, ...params }
-    return new State(props)
+    return new State({
+      ...this,
+      ...params
+    })
   }
 }

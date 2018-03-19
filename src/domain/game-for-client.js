@@ -9,7 +9,7 @@ import Progress, { PlainProgress } from './progress'
 import Field, { PlainField } from './field'
 
 type PlainGameForClient = {
-  playerIdsByOrder: PlayerIdsByOrder,
+  playerIdsByOrder?: PlayerIdsByOrder,
   you?: Player | PlainPlayer,
   otherPlayers?: Array<OtherPlayer> | Array<PlainOtherPlayer>,
   progress?: Progress | PlainProgress,
@@ -28,17 +28,17 @@ export default class Game {
     this.otherPlayers = this.initializeOtherPlayers(otherPlayers)
     this.progress = this.initializeProgress(progress)
     this.field = this.initializeField(field)
-    this.playerIdsByOrder = playerIdsByOrder || this.initializePlayerIdsByOrder()
+    this.playerIdsByOrder = playerIdsByOrder || {}
   }
   playerIdsByOrder: PlayerIdsByOrder
-  you: Player
+  you: ?Player
   otherPlayers: Array<OtherPlayer>
   progress: Progress
   field: Field
 
-  initializeYou(you: null | Player | PlainPlayer): Player {
+  initializeYou(you: null | Player | PlainPlayer): ?Player {
     if (you == null) {
-      return new Player({ name: 'dummy' })
+      return null
     } else if (you instanceof Player) {
       return you
     } else {
@@ -76,26 +76,23 @@ export default class Game {
     }
   }
 
-  initializePlayerIdsByOrder(): PlayerIdsByOrder {
-    // TODO To randomize
-    const playerIdsByOrder = {}
-    const players = [...this.otherPlayers, this.you]
-    players.forEach((player, i) => {
-      playerIdsByOrder[i + 1] = player.name
-    })
-
-    return playerIdsByOrder
+  isYourTurn(): boolean {
+    return this.getPlayerOnTurn().id === this.you.id
   }
 
-  getPlayerNameOnTurn(): string {
+  getPlayerOnTurn(): Player | OtherPlayer {
+    if (this.playerIdsByOrder.length === 0) return ''
     const { turn } = this.progress
-    const order = turn % this.getNumberOfPlayers() + 1
+    const numberOfPlayers = this.getNumberOfPlayers()
+    const order = turn % numberOfPlayers === 0 ? numberOfPlayers : turn % numberOfPlayers
 
-    return this.playerIdsByOrder[order]
+    return this.getPlayerById(this.playerIdsByOrder[order])
   }
 
   getNumberOfPlayers(): number {
-    return this.otherPlayers.length + 1
+    const numberOfOtherPlayers = this.otherPlayers.length
+    if (this.you == null) return numberOfOtherPlayers
+    return numberOfOtherPlayers + 1
   }
 
   getPlayersName(): Array<string> {
@@ -103,20 +100,39 @@ export default class Game {
     return [ this.you.name, ...otherPlayerNames ]
   }
 
-  // TODO other players
-  putCard(card: Card, point: Point, word: string): Game {
-    const field = this.field.putCard(card, point, word)
+  getPlayerIds(): Array<string> {
+    const otherPlayerIds = this.otherPlayers.map(player => player.id)
+    return [ this.you.id, ...otherPlayerIds ]
+  }
+
+  getPlayerById(id: string): Player | OtherPlayer {
+    if (this.you.id === id) return this.you
+    return this.otherPlayers.find(op => op.id === id)
+  }
+
+  getNumberOfHandsByPlayerId(id: string): number {
+    const player = this.getPlayerById(id)
+    if (player instanceof Player) return player.hands.length
+    return player.numberOfHands
+  }
+
+  putCard(card: Card, point: Point): Game {
+    const field = this.field.putCard(card, point)
     const you = this.you.putHand(card)
 
     return new Game({ ...this, you, field })
   }
 
   dealHands(yourHands: Array<Card>): Game {
-    const you = this.you.addHands(yourHands)
+    const you = this.you.addHand(yourHands)
     const otherPlayers = this.otherPlayers.map(
       player => player.addHand(yourHands.length)
     )
     return new Game({ ...this, you, otherPlayers })
+  }
+
+  isJoined(): boolean {
+    return this.you != null
   }
 
   getYourHands(): Array<Card> {

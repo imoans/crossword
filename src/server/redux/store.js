@@ -6,15 +6,17 @@ import {
   compose,
   applyMiddleware
 } from 'redux'
-import logger from 'redux-logger'
+import thunk from 'redux-thunk'
 
-import reducer from '../../domain/redux/client/reducers'
+import domainReducer from '../../domain/redux/server/reducers'
+import reducer from './reducers'
 
 const reducers = combineReducers({
-  domain: reducer,
+  domain: domainReducer,
+  server: reducer
 })
 const middlewareList = [
-  logger,
+  thunk,
 ]
 
 const store = createStore(

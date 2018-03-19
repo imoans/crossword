@@ -54,11 +54,21 @@ export default class Field {
     return handByPlayerId
   }
 
-  putCard(card: Card, point: Point, word: string): Field {
-    if (!this.validateWord(word)) {
-      throw new Error('This card can not put here')
-    }
+  confirmPutCard(card: Card, point: Point, word: string): ?Field {
+    if (this.validateWord(word)) return null
 
+    const cardsArrangement = { ...this.cardsArrangement }
+    const cardsMap = { ...this.cardsMap }
+    delete cardsArrangement[card.id]
+    delete cardsMap[card.id]
+
+    return new Field({
+      cardsArrangement,
+      cardsMap
+    })
+  }
+
+  putCard(card: Card, point: Point): Field {
     const cardsArrangement = Object.assign({}, this.cardsArrangement, { [card.id]: point })
     const cardsMap = Object.assign({}, this.cardsMap, { [card.id]: card })
 

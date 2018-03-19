@@ -25,22 +25,12 @@ export default class Game {
     this.players = players || []
     this.progress = progress || new Progress()
     this.field = field || new Field()
-    this.playerIdsByOrder = playerIdsByOrder || this.initializePlayerIdsByOrder()
+    this.playerIdsByOrder = playerIdsByOrder
   }
   playerIdsByOrder: PlayerIdsByOrder
   players: Array<Players>
   progress: Progress
   field: Field
-
-  initializePlayerIdsByOrder(): PlayerIdsByOrder {
-    // TODO To randomize
-    const playerIdsByOrder = {}
-    this.players.forEach((player, i) => {
-      playerIdsByOrder[i + 1] = player.name
-    })
-
-    return playerIdsByOrder
-  }
 
   getNumberOfPlayers(): number {
     return this.players.length
@@ -50,19 +40,37 @@ export default class Game {
     return this.players.map(player => player.name)
   }
 
-  getPlayer(id: string): Player {
-    return this.players.filter(player => player.name === id)[0]
+  getPlayer(id: string): ?Player {
+    return this.players.find(player => player.id === id)
+  }
+
+  updatePlayer(player: Player): Game {
+    return new Game({
+      ...this,
+      players: this.players.filter(p => player.id !== p.id).concat(player)
+    })
+  }
+
+  deletePlayer(id: string): Game {
+    return new Game({
+      ...this,
+      players: this.players.filter(player => player !== id),
+    })
   }
 
   dealHands(handByPlayerId: {[id: string]: Array<Card>}): Game {
-    const players = this.players.map(
-      player => player.addHand(handByPlayerId[player.name])
-    )
+    const players = this.players.map(player => {
+      return player.addHand(handByPlayerId[player.id])
+    })
     return new Game({ ...this, players })
   }
 
+  getPlayerIds(): Array<string> {
+    return this.players.map(player => player.id)
+  }
+
   getHands(playerId: string): Array<Card> {
-    const player = this.players.filter(player => player.name === playerId)
+    const player = this.players.filter(player => player.id === playerId)
     return player.hands
   }
 }

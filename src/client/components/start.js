@@ -1,13 +1,14 @@
 // @flow
 
-import type { State as DomainState } from '../../domain/redux/state'
+import type { State as DomainState } from '../../domain/redux/client/state'
 import React from 'react'
 import socket from '../socket'
 import Game from '../../domain/game'
+import domainActions from '../../domain/redux/client/actions'
 import GameForClient from '../../domain/game-for-client'
 import GameService from '../../domain/game-service'
 import Player from '../../domain/player'
-import actionCreators from '../../domain/redux/actions'
+import actionCreators from '../../domain/redux/client/actions'
 import { NUMBER_OF_CARDS } from './field'
 import { getCenterPoint } from '../../util/get-center-point'
 import {
@@ -28,10 +29,7 @@ type Props = {
 }
 
 type State = {
-  userName: string,
-  playerNames: Array<string>,
-  joined: boolean,
-  isInProgress: boolean,
+  playerName: string,
 }
 
 const styles = StyleSheet.create({
@@ -48,36 +46,34 @@ export default class Start extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userName: '',
-      playerNames: [],
-      joined: false,
+      playerName: '',
     }
 
-    socket.on('addPlayer', (playerNames) => {
-      this.setState({ playerNames })
+    socket.on('updateGame', (plainGame) => {
+      const game = new GameForClient(plainGame)
+      this.props.dispatch(domainActions.updateGame(game))
     })
 
-    socket.on('joined', (playerNames) => {
-      this.setState({ joined: true })
-    })
-
-    socket.on('inProgress', () => {
-      this.setState({ isInProgress: true })
-    })
-
-    socket.on('disconnect', (playerName, playerNames) => {
-      this.setState({ playerNames })
+    socket.on('disconnect', (playerName) => {
       console.log(`${playerName} disconnect`)
     })
   }
 
-  addUser() {
-    if (this.state.joined) return
-    socket.emit('addPlayer', this.state.userName)
+  isJoined() {
+    return this.props.domain.game.isJoined()
+  }
+
+  isInProgress() {
+    return this.props.domain.game.progress.isInProgress
+  }
+
+  addPlayer = () => {
+    if (this.isJoined() || this.state.playerName.length === 0) return
+    socket.emit('addPlayer', this.state.playerName)
   }
 
   startGame = () => {
-    if (!this.isReady() || this.state.isInProgress) return
+    if (!this.isReady() || this.isInProgress()) return
     const { HORIZONTAL, VERTICAL } = NUMBER_OF_CARDS
     const center = getCenterPoint(HORIZONTAL, VERTICAL)
     socket.emit('startGame', center)
@@ -85,16 +81,17 @@ export default class Start extends React.Component {
 
   updateUserName(e) {
     this.setState({
-      userName: e.target.value
+      playerName: e.target.value
     })
   }
 
   isReady() {
-    return this.state.playerNames.length >= 2
+    return this.props.domain.game.getNumberOfPlayers() >= 2
   }
 
   render() {
-    if (this.state.isInProgress) return <Redirect to={PATH.GAME} />
+    if (this.isInProgress()) return <Redirect to={PATH.GAME} />
+    const game = this.props.domain.game
 
     return (
       <View style={styles.container}>
@@ -106,13 +103,16 @@ export default class Start extends React.Component {
           onBlur={(e) => this.updateUserName(e)}
         />
         <Text
-          onClick={(e) => this.addUser(e)}
-          style={this.state.joined ? styles.disable : null}
+          onClick={this.addPlayer}
+          style={this.isJoined() ? styles.disable : null}
         >
           join
         </Text>
         <Text>members waiting for the game</Text>
-        <Text>{this.state.playerNames.join(', ')}</Text>
+        {game.getNumberOfPlayers() > 0 &&
+
+          <Text>{game.getPlayersName().join(', ')}</Text>
+        }
 
         <TouchableOpacity onPress={this.startGame}>
           <Text style={this.isReady() ? null : styles.disable}>
