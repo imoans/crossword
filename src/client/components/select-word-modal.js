@@ -2,11 +2,15 @@
 
 import React, { Component } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import COLORS from '../constants/colors'
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     borderRadius: 5,
+    backgroundColor: COLORS.PRIMARY,
+    padding: 10,
+    alignItems: 'center',
   },
   disable: {
     opacity: 0.5,

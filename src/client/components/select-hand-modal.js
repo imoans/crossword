@@ -5,11 +5,15 @@ import React, { Component } from 'react'
 import type { Point } from '../../domain/field'
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import CardView from './card'
+import COLORS from '../constants/colors'
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     borderRadius: 5,
+    backgroundColor: COLORS.PRIMARY,
+    padding: 10,
+    alignItems: 'center',
   },
   hands: {
     flex: 1,

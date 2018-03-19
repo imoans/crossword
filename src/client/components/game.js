@@ -14,6 +14,24 @@ import CardView from './card'
 import Field, { NUMBER_OF_CARDS } from './field'
 import socket from '../socket'
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.BASE,
+    justifyContent: 'space-around',
+  },
+  handsViewContainer: {
+    flex: 1,
+    borderRadius: 5,
+    backgroundColor: COLORS.PRIMARY,
+    padding: 10,
+    alignItems: 'center',
+  },
+  handsView: {
+    flexDirection: 'row',
+  }
+})
+
 type Props = {
   domain: DomainState,
   dispatch: any,
@@ -26,15 +44,8 @@ type State = {
   errorString: string,
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BASE,
-  },
-})
-
 export default class Game extends Component {
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
 
     socket.on('updateGame', (plainGameForClient: PlainGameForClient) => {
@@ -159,11 +170,13 @@ export default class Game extends Component {
           onPressTile={this.onPressTile}
         />
         {hands.length > 0 &&
-          <View style={{ flexDirection: 'row' }}>
+          <View style={styles.handsViewContainer}>
             <Text>your hands</Text>
-            {hands.map(
-              (hand, i) => <CardView key={i} value={hand.value} />
-            )}
+            <View style={styles.handsView}>
+              {hands.map(
+                (hand, i) => <CardView key={i} value={hand.value} />
+              )}
+            </View>
           </View>
         }
 

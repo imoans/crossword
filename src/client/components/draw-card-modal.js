@@ -1,6 +1,7 @@
 // @flow
 
 import React, { Component } from 'react'
+import COLORS from '../constants/colors'
 import {
   View,
   StyleSheet,
@@ -12,6 +13,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     borderRadius: 5,
+    backgroundColor: COLORS.PRIMARY,
+    padding: 10,
+    alignItems: 'center',
   },
 })
 
