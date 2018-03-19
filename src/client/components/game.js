@@ -10,7 +10,7 @@ import actionCreators from '../../domain/redux/client/actions'
 import SelectHandModal from './select-hand-modal'
 import SelectWordModal from './select-word-modal'
 import DrawCardModal from './draw-card-modal'
-import Card from './card'
+import CardView from './card'
 import Field, { NUMBER_OF_CARDS } from './field'
 import socket from '../socket'
 
@@ -20,9 +20,6 @@ type Props = {
 }
 
 type State = {
-  selectHandsModalVisible: boolean,
-  selectWordModalVisible: boolean,
-  drawCardModalVisible: boolean,
   cardIdsToMakeWord: Array<string>,
   point: Point,
   cardToPut: ?Card,
@@ -53,9 +50,6 @@ export default class Game extends Component {
   }
 
   state: State = {
-    selectHandsModalVisible: false,
-    selectWordModalVisible: false,
-    drawCardModalVisible: false,
     point: {},
     cardIdsToMakeWord: [],
     cardToPut: null,
@@ -78,7 +72,6 @@ export default class Game extends Component {
   }
 
   onSelectedHand = (hand: Card) => {
-    console.log('onSelectHand', hand)
     this.setState({ cardToPut: hand })
     const service = new GameServiceForClient(this.props.domain.game)
     const game = service.putCard(hand, this.state.point)
@@ -89,12 +82,10 @@ export default class Game extends Component {
     if (!this.isYourTurn()) return
     this.setState({
       point,
-      selectHandsModalVisible: true,
     })
   }
 
   onPressCard = (card: Card) => {
-    console.log(card)
     if (!this.isYourTurn()) return
     this.setState({
       cardIdsToMakeWord: this.state.cardIdsToMakeWord.concat(card.id)
@@ -145,16 +136,16 @@ export default class Game extends Component {
 
         <SelectHandModal
           hands={hands}
-          visible={this.state.selectHandsModalVisible}
+          visible={this.isYourTurn()}
           onSelectedHand={this.onSelectedHand}
         />
         <SelectWordModal
-          visible={this.state.selectWordModalVisible}
+          visible={this.isYourTurn()}
           word={this.getWord()}
           onComplete={this.onCompleteWord}
         />
         <DrawCardModal
-          visible={this.state.drawCardModalVisible}
+          visible={this.isYourTurn()} /* TODO */
           onPress={this.onDrawCard}
         />
         {this.state.errorString.length > 0 &&
@@ -171,7 +162,7 @@ export default class Game extends Component {
           <View style={{ flexDirection: 'row' }}>
             <Text>your hands</Text>
             {hands.map(
-              (hand, i) => <Card key={i} value={hand.value} />
+              (hand, i) => <CardView key={i} value={hand.value} />
             )}
           </View>
         }

@@ -3,8 +3,9 @@
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import COLORS from '../constants/colors'
+import type { Card } from '../../domain/card'
 import type { CardsArrangement, Point } from '../../domain/field'
-import Card, { CARD_SIZE } from './card'
+import CardView, { CARD_SIZE } from './card'
 import { range } from '../../util/array'
 
 export const NUMBER_OF_CARDS = {
@@ -32,7 +33,7 @@ type Props = {
   point: Point,
   cardToPut: Card,
   field: Field,
-  onPressCard: (card) => void,
+  onPressCard: (card: Card) => void,
   onPressTile: (point: Point) => void,
 }
 
@@ -55,7 +56,7 @@ const renderRow = (cards: Array<Card>, onPressTile, row, selectedPoint, cardToPu
       if (selected && cardToPut || card != null) {
         const value = card ? card.value : cardToPut.value
         return (
-          <Card
+          <CardView
             key={x}
             value={value}
             onPress={() => onPressCard(card)}

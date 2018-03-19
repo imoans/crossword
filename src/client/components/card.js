@@ -35,7 +35,7 @@ type Props = {
   onPress: (card: any) => void,
 }
 
-const Card = (props) => {
+const CardView = (props) => {
   return (
     <TouchableOpacity onPress={props.onPress}>
       <View style={styles.container}>
@@ -45,4 +45,4 @@ const Card = (props) => {
   )
 }
 
-export default Card
+export default CardView
