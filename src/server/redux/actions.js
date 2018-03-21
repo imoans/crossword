@@ -71,6 +71,16 @@ const actions = {
     }
   },
 
+  putCard(card: Card, point: Point, clientId: string) {
+    return (dispatch, getState) => {
+      const service = new GameService(getState().domain.game)
+      const playerByClientId = getState().server.playerByClientId
+      const newGame = service.putCard(card, point, playerByClientId[clientId])
+      dispatch(domainActions.updateGame(newGame))
+      emitGameToClient(playerByClientId, newGame)
+    }
+  },
+
   disconnect(clientId: string): () =>  void {
     return (dispatch, getState) => {
       const playerByClientId = { ...getState().server.playerByClientId }

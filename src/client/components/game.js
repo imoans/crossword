@@ -94,14 +94,13 @@ export default class Game extends Component {
       this.setState({ errorString: 'press tile after selecting hand to put' })
       return
     }
+
     if (!this.isValidPointToPut) {
       this.setState({ errorString: 'this point is invalid to put' })
       return this
     }
-    // TODO check point
-    const service = new GameServiceForClient(this.props.domain.game)
-    const game = service.putCard(this.state.handToPut, point)
-    socket.emit('updateGame', game)
+
+    socket.emit('putCard', { card: this.state.handToPut, point })
   }
 
   onPressCard = (card: Card) => {

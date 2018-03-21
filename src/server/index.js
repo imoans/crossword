@@ -12,15 +12,9 @@ const port = 8000
 const server = require('http').createServer()
 const io = require('socket.io').listen(server)
 
-const domainState = new DomainState()
-store.dispatch(domainActions.setState(domainState))
-const getDomain = () => store.getState().domain
+store.dispatch(domainActions.setState(new DomainState()))
 
 io.on('connection', (client) => {
-  client.on('updateGame', (plainGameForClient) => {
-    store.dispatch(actions.updateGame(plainGameForClient))
-  })
-
   client.on('addPlayer', (playerName) => {
     store.dispatch(actions.addPlayer(playerName, client.id))
   })
@@ -31,6 +25,10 @@ io.on('connection', (client) => {
 
   client.on('skipTurn', () => {
     store.dispatch(actions.skipTurn(client.id))
+  })
+
+  client.on('putCard', ({ card, point }) => {
+    store.dispatch(actions.putCard(card, point, client.id))
   })
 
   client.on('cancelPuttingCard', () => {
