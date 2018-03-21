@@ -53,12 +53,12 @@ const Field = (props: Props) => {
     {range(1, VERTICAL).map(y => {
       const cards = range(1, HORIZONTAL).map(x => field.getCardByPoint({ x, y}))
       return (
-        <View style={styles.row}>
+        <View key={`row${y}`} style={styles.row}>
         {cards.map((card, i) => {
           if (card != null) {
             return (
               <CardView
-                key={i}
+                key={`${card.id}onField`}
                 value={card.value}
                 onPress={() => onPressCard(card)}
               />
@@ -67,7 +67,7 @@ const Field = (props: Props) => {
 
           return (
             <Tile
-              key={i}
+              key={`tile${i + y}onField`}
               onPress={() => onPressTile({ x: i + 1, y, })}
             />
           )

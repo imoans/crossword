@@ -13,7 +13,7 @@ import SelectHandModal from './select-hand-modal'
 import SelectWordModal from './select-word-modal'
 import SkipTurnModal from './skip-turn-modal'
 import CardView from './card'
-import Field, { NUMBER_OF_CARDS } from './field'
+import Field from './field'
 import socket from '../socket'
 
 const styles = StyleSheet.create({
@@ -50,11 +50,6 @@ export default class Game extends Component {
   constructor(props: Props) {
     super(props)
 
-    socket.on('updateGame', (plainGameForClient: PlainGameForClient) => {
-      const game = new GameForClient(plainGameForClient)
-      this.props.dispatch(actionCreators.updateGame(game))
-    })
-
     socket.on('failedToPutCard', (word: string) => {
       this.setState({
         errorString: `${word} is invalid!`
@@ -89,8 +84,20 @@ export default class Game extends Component {
     this.setState({ handToPut: hand })
   }
 
+  isValidPointToPut(point: Point): boolean {
+    return this.props.domain.game.field.isValidPointToPut(point)
+  }
+
   onPressTile = (point: Point) => {
-    if (!this.isYourTurn() || this.state.handToPut == null) return
+    if (!this.isYourTurn()) return
+    if (this.state.handToPut == null) {
+      this.setState({ errorString: 'press tile after selecting hand to put' })
+      return
+    }
+    if (!this.isValidPointToPut) {
+      this.setState({ errorString: 'this point is invalid to put' })
+      return this
+    }
     // TODO check point
     const service = new GameServiceForClient(this.props.domain.game)
     const game = service.putCard(this.state.handToPut, point)

@@ -77,6 +77,7 @@ export default class Field {
   }
 
   putCard(card: Card, point: Point): Field {
+    if (!this.isValidPointToPut(point)) return this
     const temporaryCardsArrangament = {
       ...this.temporaryCardsArrangament,
       [card.id]: point,
@@ -99,5 +100,14 @@ export default class Field {
       cardsArrangement,
       cardsMap
     })
+  }
+
+  isValidPointToPut(point: Point): boolean {
+    const { x, y } = point
+    const right = { x: x + 1, y }
+    const left = { x: x - 1, y }
+    const up = { x, y: y + 1 }
+    const down = { x, y: y - 1 }
+    return [right, left, up, down].some(point => this.getCardByPoint(point) != null)
   }
 }

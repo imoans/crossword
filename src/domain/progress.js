@@ -10,7 +10,7 @@ export default class Progress {
     turn,
     isInProgress
   }: PlainProgress = {}) {
-    this.turn = turn || 1
+    this.turn = turn || 0
     this.isInProgress = isInProgress || false
   }
   turn: number
@@ -27,6 +27,7 @@ export default class Progress {
   start(): Progress {
     return new Progress({
       ...this,
+      turn: 1,
       isInProgress: true,
     })
   }

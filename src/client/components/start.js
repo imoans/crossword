@@ -18,14 +18,14 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
-import { Redirect } from 'react-router'
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import PATH from '../constants/path'
 import COLORS from '../constants/colors'
 
 type Props = {
   domain: DomainState,
   dispatch: any,
+  history: any,
 }
 
 type State = {
@@ -43,11 +43,8 @@ const styles = StyleSheet.create({
 })
 
 export default class Start extends React.Component {
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
-    this.state = {
-      playerName: '',
-    }
 
     socket.on('updateGame', (plainGame) => {
       const game = new GameForClient(plainGame)
@@ -59,12 +56,26 @@ export default class Start extends React.Component {
     })
   }
 
+  componentWillReceiveProps(nextProps) {
+    const prevProgress = this.props.domain.game.progress
+    const nextProgress = nextProps.domain.game.progress
+
+    if (!prevProgress.isInProgress && nextProgress.isInProgress) {
+      this.props.history.push(PATH.GAME)
+    }
+  }
+
+  state: State = {
+    playerName: '',
+  }
+
   isJoined() {
     return this.props.domain.game.isJoined()
   }
 
   isInProgress() {
-    return this.props.domain.game.progress.isInProgress
+    const progress = this.props.domain.game.progress
+    return progress.isInProgress
   }
 
   addPlayer = () => {
@@ -79,10 +90,8 @@ export default class Start extends React.Component {
     socket.emit('startGame', center)
   }
 
-  updateUserName(e) {
-    this.setState({
-      playerName: e.target.value
-    })
+  updateUserName(name: string) {
+    this.setState({ playerName: name })
   }
 
   isReady() {
@@ -90,7 +99,6 @@ export default class Start extends React.Component {
   }
 
   render() {
-    if (this.isInProgress()) return <Redirect to={PATH.GAME} />
     const game = this.props.domain.game
 
     return (
@@ -98,9 +106,9 @@ export default class Start extends React.Component {
         <Text>crossword</Text>
 
         <Text>join from here</Text>
-        <Text>input your name </Text>
+        <Text>input your name</Text>
         <TextInput
-          onBlur={(e) => this.updateUserName(e)}
+          onBlur={({ target }) => this.updateUserName(target.value)}
         />
         <Text
           onClick={this.addPlayer}
