@@ -5,6 +5,7 @@ import type { Player } from './player.js'
 import Game from './game.js'
 import GameForClient from './game-for-client'
 import OtherPlayer from './other-player'
+import { shuffle } from '../util/array'
 
 export default class GameService {
   constructor(game: ?Game) {
@@ -33,9 +34,8 @@ export default class GameService {
   setOrder(): Game {
     if (this.game.getNumberOfPlayers() === 0) return this.game
 
-    // TODO To randomize
     const playerIdsByOrder = {}
-    this.game.players.forEach((player, i) => {
+    shuffle(this.game.players).forEach((player, i) => {
       playerIdsByOrder[i + 1] = player.id
     })
 
@@ -54,19 +54,17 @@ export default class GameService {
     })
   }
 
-  putCard(card: Card, point: Point): Game {
-    const field = this.game.field.putCard(card, point)
-    return new Game({ ...this.game, field })
+  putCard(card: Card, point: Point, playerId: string): Game {
+    return this.game.putCard(card, point, playerId)
+  }
+
+  cancelPuttingCard(playerId: string): Game {
+    return this.game.cancelPuttingCard(playerId)
   }
 
   confirmPutCard(isWordValid: boolean, playerId: string): Game {
     if (!isWordValid) {
-      const game = this.game.drawCard(playerId).goToNextTurn()
-      const field = game.field.cancelPuttingCard()
-      return new Game ({
-        ...game,
-        field,
-      })
+      return this.game.cancelPuttingCard(playerId)
     }
 
     const field = this.game.field.confirmPutCard()

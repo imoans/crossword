@@ -71,8 +71,10 @@ export default class Game extends Component {
   getWord(): string {
     const { cardIdsToMakeWord } = this.state
     const field = this.props.domain.game.field
-    const { temporaryCardsArrangament } = field
-    const points = cardIdsToMakeWord.map(id => temporaryCardsArrangament[id])
+    const { temporaryCardsArrangament, cardsArrangement } = field
+    const points = cardIdsToMakeWord.map(id => {
+      return cardsArrangement[id] || temporaryCardsArrangament[id]
+    })
     points.sort((a,b) => a.x - b.x)
     points.sort((a,b) => a.y - b.y)
 
@@ -103,15 +105,25 @@ export default class Game extends Component {
 
   onCompleteWord = () => {
     socket.emit('confirmPutCard', this.getWord())
+    this.initializeState()
+  }
 
+  initializeState() {
     this.setState({
       handToPut: null,
       cardIdsToMakeWord: [],
+      errorString: '',
     })
   }
 
   onSkipTurn = () => {
     socket.emit('skipTurn')
+    this.initializeState()
+  }
+
+  onCancelPuttingCard = () => {
+    socket.emit('cancelPutting')
+    this.initializeState()
   }
 
   render() {
@@ -140,6 +152,7 @@ export default class Game extends Component {
           handToPut={this.state.handToPut}
           visible={this.isYourTurn()}
           onSelectedHand={this.onSelectedHand}
+          onCancel={this.onCancelPuttingCard}
         />
         <SelectWordModal
           visible={this.isYourTurn()}
@@ -168,7 +181,6 @@ export default class Game extends Component {
             </View>
           </View>
         }
-
       </View>
     )
   }

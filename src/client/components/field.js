@@ -36,56 +36,46 @@ type Props = {
   onPressTile: (point: Point) => void,
 }
 
-const getHorizontalCardsFromLeft = (row: number, field: Field): Array<Card> => {
-  const { HORIZONTAL } = NUMBER_OF_CARDS
-  return range(1, HORIZONTAL).map(x => (
-    field.getCardByPoint({ x, y: row })
-  ))
-}
-
-const renderRow = (row: number, props: Props) => {
-  const { onPressCard, onPressTile, field } = props
-  const cards = getHorizontalCardsFromLeft(row, field)
-
-  return (
-    <View style={styles.row}>
-    {range(1, NUMBER_OF_CARDS.HORIZONTAL).map(x => {
-      const card = cards[x - 1]
-      if (card != null) {
-        return (
-          <CardView
-            key={x}
-            value={card.value}
-            onPress={() => onPressCard(card)}
-          />
-        )
-      }
-
-      const point = { x, y: row }
-      return (
-        <Tile
-          key={x}
-          onPress={() => onPressTile(point)}
-        />
-      )
-    })}
-    </View>
-  )
-}
-
-const Field = (props: Props) => {
-  return (
-    <View style={styles.container}>
-      {range(1, NUMBER_OF_CARDS.VERTICAL).map(y => renderRow(y, props))}
-    </View>
-  )
-}
-
-const Tile = (props: { onPress: () => void }) => {
+const Tile = (props: { onPress: (point: Point) => void }) => {
   return (
     <TouchableOpacity onPress={props.onPress}>
       <View style={styles.tile} />
     </TouchableOpacity>
+  )
+}
+
+const Field = (props: Props) => {
+  const { onPressCard, onPressTile, field } = props
+  const { VERTICAL, HORIZONTAL } = NUMBER_OF_CARDS
+
+  return (
+    <View style={styles.container}>
+    {range(1, VERTICAL).map(y => {
+      const cards = range(1, HORIZONTAL).map(x => field.getCardByPoint({ x, y}))
+      return (
+        <View style={styles.row}>
+        {cards.map((card, i) => {
+          if (card != null) {
+            return (
+              <CardView
+                key={i}
+                value={card.value}
+                onPress={() => onPressCard(card)}
+              />
+            )
+          }
+
+          return (
+            <Tile
+              key={i}
+              onPress={() => onPressTile({ x: i + 1, y, })}
+            />
+          )
+        })}
+        </View>
+      )
+    })}
+    </View>
   )
 }
 

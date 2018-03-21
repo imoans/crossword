@@ -21,7 +21,6 @@ const styles = StyleSheet.create({
     height: CARD_SIZE.HEIGHT,
     backgroundColor: COLORS.PRIMARY,
     borderWidth: 1,
-    borderColor: COLORS.BASE,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -33,12 +32,15 @@ const styles = StyleSheet.create({
 type Props = {
   value: string,
   onPress: (card: any) => void,
+  selected: boolean,
 }
 
 const CardView = (props) => {
+  const borderColor = props.selected ? COLORS.ACCENT : COLORS.BASE
+
   return (
     <TouchableOpacity onPress={props.onPress}>
-      <View style={styles.container}>
+      <View style={[styles.container, { borderColor }]}>
         <Text style={styles.value}>{props.value}</Text>
       </View>
     </TouchableOpacity>

@@ -57,6 +57,10 @@ export default class Field {
     })
   }
 
+  getTemporaryCards(): Array<Card> {
+    return Object.keys(this.temporaryCardsArrangament).map(id => this.cardsMap[id])
+  }
+
   cancelPuttingCard(): Field {
     const temporaryCardsArrangament = { ...this.temporaryCardsArrangament }
     const cardsMap = { ...this.cardsMap }

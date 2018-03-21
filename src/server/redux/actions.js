@@ -34,7 +34,7 @@ const emitGameToClient = (
 }
 
 const actions = {
-  updateGame(plainGameForClient): void {
+  updateGame(plainGameForClient) {
     return (dispatch, getState) => {
       const gameForClient = new GameForClient(plainGameForClient)
       const service = new GameService(getState().domain.game)
@@ -45,7 +45,7 @@ const actions = {
     }
   },
 
-  startGame(pointToPutFirstCard: Point): void {
+  startGame(pointToPutFirstCard: Point) {
     return (dispatch, getState) => {
       const game = getState().domain.game
       const gameIsStarted = new GameService(game).startGame()
@@ -59,18 +59,19 @@ const actions = {
     }
   },
 
-  skipTurn(clientId: string): void {
+  skipTurn(clientId: string) {
     return (dispatch, getState) => {
       const game = getState().domain.game
-      const service = new GameService(game)
       const playerByClientId = getState().server.playerByClientId
-      const newGame = game.drawCard(playerByClientId[clientId]).goToNextTurn()
+      const playerId = playerByClientId[clientId]
+      const gameCancelPuttingCards = new GameService(game).cancelPuttingCard(playerId)
+      const newGame = gameCancelPuttingCards.drawCard(playerId).goToNextTurn()
       dispatch(domainActions.updateGame(newGame))
       emitGameToClient(playerByClientId, newGame)
     }
   },
 
-  disconnect(clientId: string): void {
+  disconnect(clientId: string): () =>  void {
     return (dispatch, getState) => {
       const playerByClientId = { ...getState().server.playerByClientId }
       const id = playerByClientId[clientId]
@@ -88,7 +89,16 @@ const actions = {
     }
   },
 
-  confirmPutCard(word: string, clientId: string): void {
+  cancelPuttingCard(clientId: string) {
+    return (dispatch, getState) => {
+      const service = new GameService(getState().domain.game)
+      const playerByClientId = getState().server.playerByClientId
+      const game = service.cancelPuttingCard(playerByClientId[clientId])
+      emitGameToClient(getState().server.playerByClientId, game)
+    }
+  },
+
+  confirmPutCard(word: string, clientId: string) {
     return async (dispatch, getState) => {
       const service = new GameService(getState().domain.game)
       const playerByClientId = getState().server.playerByClientId
@@ -102,7 +112,7 @@ const actions = {
     }
   },
 
-  deletePlayer(clientId: string): void {
+  deletePlayer(clientId: string) {
     return (dispatch, getState) => {
       const playerByClientId = { ...getState().server.playerByClientId }
       const id = playerByClientId[clientId]
@@ -136,11 +146,11 @@ const actions = {
     }
   },
 
-  setPlayerIds(playerByClientId: PlayerByClientId) {
+  setPlayerIds(playerByClientId: PlayerByClientId): Action {
     return { type: 'setPlayerIds', payload: { playerByClientId } }
   },
 
-  setState(state: State) {
+  setState(state: State): Action {
     return { type: 'setState', payload: { state } }
   },
 }

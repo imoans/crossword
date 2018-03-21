@@ -33,6 +33,10 @@ io.on('connection', (client) => {
     store.dispatch(actions.skipTurn(client.id))
   })
 
+  client.on('cancelPuttingCard', () => {
+    store.dispatch(actions.cancelPuttingCard(client.id))
+  })
+
   client.on('confirmPutCard', async (word) => {
     await store.dispatch(actions.confirmPutCard(word, client.id))
   })

@@ -80,6 +80,15 @@ export default class Game {
     return new Game({ ...this, progress })
   }
 
+  cancelPuttingCard(playerId: string): Game {
+    const temporaryCards = this.field.getTemporaryCards()
+    const player = this.getPlayer(playerId).addHands(temporaryCards)
+    const game = this.updatePlayer(player)
+    const field = game.field.cancelPuttingCard()
+
+    return new Game({ ...game, field })
+  }
+
   dealHands(): Game {
     if (!this.isDrawableCard()) return this
     const deck = this.deck.slice()
@@ -88,6 +97,14 @@ export default class Game {
     })
 
     return new Game({ ...this, players, deck })
+  }
+
+  putCard(card: Card, point: Point, playerId: string): Game {
+    const player = this.getPlayer(playerId)
+    const game = this.updatePlayer(player.putHand(card))
+    const field = game.field.putCard(card, point)
+
+    return new Game({ ...game, field })
   }
 
   putFirstCard(point: Point): Game {
