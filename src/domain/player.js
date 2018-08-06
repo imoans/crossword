@@ -8,6 +8,11 @@ export type PlainPlayer = {
 }
 
 export default class Player {
+  static createRandomString(length: number): string {
+    const seed = '123456789abcdefghijklmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ'
+    return range(1, length).map(number => seed[Math.floor(Math.random() * seed.length)]).join('')
+  }
+
   constructor({
     hands,
     name,
@@ -15,7 +20,7 @@ export default class Player {
   }: PlainPlayer = {}) {
     this.hands = hands || []
     this.name = name || 'dummy'
-    this.id = id
+    this.id = id || createRandomString(10)
   }
   hands: Array<Card>
   name: string

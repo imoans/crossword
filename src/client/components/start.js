@@ -45,15 +45,6 @@ const styles = StyleSheet.create({
 export default class Start extends React.Component {
   constructor(props: Props) {
     super(props)
-
-    socket.on('updateGame', (plainGame) => {
-      const game = new GameForClient(plainGame)
-      this.props.dispatch(domainActions.updateGame(game))
-    })
-
-    socket.on('disconnect', (playerName) => {
-      console.log(`${playerName} disconnect`)
-    })
   }
 
   componentWillReceiveProps(nextProps) {
@@ -80,14 +71,15 @@ export default class Start extends React.Component {
 
   addPlayer = () => {
     if (this.isJoined() || this.state.playerName.length === 0) return
-    socket.emit('addPlayer', this.state.playerName)
+    const player = new Player({ name: this.state.playerName })
+    socket.addPlayer(player)
   }
 
   startGame = () => {
     if (!this.isReady() || this.isInProgress()) return
     const { HORIZONTAL, VERTICAL } = NUMBER_OF_CARDS
     const center = getCenterPoint(HORIZONTAL, VERTICAL)
-    socket.emit('startGame', center)
+    socket.startGame(center)
   }
 
   updateUserName(name: string) {

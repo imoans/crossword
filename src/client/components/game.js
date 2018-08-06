@@ -49,12 +49,6 @@ type State = {
 export default class Game extends Component {
   constructor(props: Props) {
     super(props)
-
-    socket.on('failedToPutCard', (word: string) => {
-      this.setState({
-        errorString: `${word} is invalid!`
-      })
-    })
   }
 
   state: State = {
@@ -88,6 +82,10 @@ export default class Game extends Component {
     return this.props.domain.game.field.isValidPointToPut(point)
   }
 
+  getMyId(): string {
+    return this.props.domain.game.you.id
+  }
+
   onPressTile = (point: Point) => {
     if (!this.isYourTurn()) return
     if (this.state.handToPut == null) {
@@ -100,7 +98,11 @@ export default class Game extends Component {
       return this
     }
 
-    socket.emit('putCard', { card: this.state.handToPut, point })
+    socket.putCard({
+      card: this.state.handToPut,
+      point,
+      playerId: this.getMyId(),
+    })
   }
 
   onPressCard = (card: Card) => {
@@ -110,7 +112,7 @@ export default class Game extends Component {
   }
 
   onCompleteWord = () => {
-    socket.emit('confirmPutCard', this.getWord())
+    socket.confirmPutCard({ word: this.getWord(), playerId: this.getMyId() })
     this.initializeState()
   }
 
@@ -123,12 +125,12 @@ export default class Game extends Component {
   }
 
   onSkipTurn = () => {
-    socket.emit('skipTurn')
+    socket.skipTurn(this.getMyId())
     this.initializeState()
   }
 
   onCancelPuttingCard = () => {
-    socket.emit('cancelPutting')
+    socket.cancelPutting(this.getMyId())
     this.initializeState()
   }
 
